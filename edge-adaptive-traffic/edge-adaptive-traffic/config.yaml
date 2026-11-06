@@ -1,0 +1,33 @@
+# Intersection / controller configuration
+sim:
+  step_seconds: 5          # one control step = 5 s
+  episode_steps: 720       # 1 hour
+  saturation_per_step: 5   # Binomial(n, 0.5) departures per green approach per step
+  lost_steps: 1            # yellow + all-red after a phase switch
+controller:
+  min_green_steps: 3       # 15 s
+  max_green_steps: 12      # 60 s
+  fixed_cycle_steps: 6     # 30 s for baseline
+  q_bins: [0, 2, 5, 10, 18, 30, 50, 80]   # queue discretisation edges
+  alpha: 0.15555
+  gamma: 0.95
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+training:
+  episodes: 600
+  seed: 42
+# Approach zones for video mode: normalised [x1, y1, x2, y2] in the camera frame
+zones:
+  N: [0.35, 0.00, 0.65, 0.40]
+  S: [0.35, 0.60, 0.65, 1.00]
+  E: [0.60, 0.35, 1.00, 0.65]
+  W: [0.00, 0.35, 0.40, 0.65]
+detector:
+  weights: yolov8n.pt      # swap for yolov8n.onnx / .tflite on Jetson / RPi
+  conf: 0.35
+  vehicle_classes: [2, 3, 5, 7]   # COCO: car, motorcycle, bus, truck
+mqtt:
+  enabled: false
+  host: localhost
+  port: 1883
+  topic: city/junction01/state

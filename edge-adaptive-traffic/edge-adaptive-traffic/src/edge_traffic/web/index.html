@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS-ITS | Autonomous Edge AI Smart Traffic Digital Twin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(16, 22, 36, 0.82);
+      --bg-card-hover: rgba(22, 32, 54, 0.9);
+      --border-color: rgba(0, 243, 255, 0.18);
+      --border-bright: rgba(0, 243, 255, 0.45);
+      --neon-cyan: #00f3ff;
+      --neon-green: #00ff88;
+      --neon-yellow: #ffb800;
+      --neon-red: #ff3366;
+      --neon-purple: #9d4edd;
+      --text-main: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(157, 78, 221, 0.05) 0%, transparent 40%);
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: rgba(11, 15, 25, 0.95);
+      border-bottom: 1px solid var(--border-color);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #07090e;
+      font-size: 20px;
+      box-shadow: 0 0 16px rgba(0, 243, 255, 0.4);
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #fff, var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--neon-green);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1px;
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .junction-select {
+      background: rgba(16, 22, 36, 0.9);
+      border: 1px solid var(--border-bright);
+      color: var(--neon-cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 20px;
+      color: var(--neon-green);
+    }
+
+    .status-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--neon-green);
+      box-shadow: 0 0 8px var(--neon-green);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.4; transform: scale(0.9); }
+    }
+
+    /* MAIN LAYOUT */
+    .dashboard-container {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      padding: 16px 24px;
+      flex: 1;
+    }
+
+    /* KPI METRICS ROW */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 16px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      transition: border-color 0.2s;
+    }
+
+    .kpi-card:hover {
+      border-color: var(--border-bright);
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #fff;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--neon-green);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* VISUALIZATION PANEL */
+    .main-visualizer {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .canvas-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .canvas-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: rgba(11, 17, 30, 0.95);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-dim);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: rgba(0, 243, 255, 0.15);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 12px rgba(0, 243, 255, 0.2);
+    }
+
+    .canvas-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .ctrl-pill {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-dim);
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 520px;
+      background: #090d16;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .hud-overlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .hud-tag {
+      background: rgba(7, 9, 14, 0.85);
+      border-left: 3px solid var(--neon-cyan);
+      padding: 4px 8px;
+      border-radius: 0 4px 4px 0;
+      color: #fff;
+    }
+
+    .hud-tag.red {
+      border-left-color: var(--neon-red);
+      color: var(--neon-red);
+    }
+
+    .hud-tag.green {
+      border-left-color: var(--neon-green);
+      color: var(--neon-green);
+    }
+
+    /* SIDEBAR CONTROLS */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+    }
+
+    /* ACTION BUTTONS */
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .action-btn {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .btn-emergency {
+      background: linear-gradient(135deg, rgba(255, 51, 102, 0.2), rgba(255, 51, 102, 0.05));
+      border-color: var(--neon-red);
+      color: #ff3366;
+    }
+
+    .btn-emergency:hover {
+      background: rgba(255, 51, 102, 0.3);
+      box-shadow: 0 0 16px rgba(255, 51, 102, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-accident {
+      background: linear-gradient(135deg, rgba(255, 184, 0, 0.2), rgba(255, 184, 0, 0.05));
+      border-color: var(--neon-yellow);
+      color: #ffb800;
+    }
+
+    .btn-accident:hover {
+      background: rgba(255, 184, 0, 0.3);
+      box-shadow: 0 0 16px rgba(255, 184, 0, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-policy {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      justify-content: space-between;
+    }
+
+    .btn-policy.active {
+      background: rgba(0, 243, 255, 0.15);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .btn-policy:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .weather-group {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .weather-btn {
+      padding: 6px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: var(--text-dim);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .weather-btn.active {
+      background: rgba(0, 243, 255, 0.2);
+      border-color: var(--neon-cyan);
+      color: #fff;
+    }
+
+    /* EVENTS FEED */
+    .events-feed {
+      height: 180px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding-right: 4px;
+    }
+
+    .events-feed::-webkit-scrollbar {
+      width: 4px;
+    }
+    .events-feed::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+
+    .event-item {
+      padding: 6px 8px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 3px solid var(--neon-cyan);
+      line-height: 1.3;
+    }
+
+    .event-item.danger {
+      border-left-color: var(--neon-red);
+      background: rgba(255, 51, 102, 0.1);
+      color: #ff99aa;
+    }
+
+    .event-item.warning {
+      border-left-color: var(--neon-yellow);
+      background: rgba(255, 184, 0, 0.1);
+      color: #ffdda1;
+    }
+
+    .event-item.success {
+      border-left-color: var(--neon-green);
+      background: rgba(0, 255, 136, 0.1);
+      color: #99ffd0;
+    }
+
+    /* QUEUE METER */
+    .queue-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .queue-bar-wrap {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .queue-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .queue-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .queue-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--neon-green), var(--neon-yellow));
+      transition: width 0.3s;
+    }
+
+    .queue-fill.high {
+      background: linear-gradient(90deg, var(--neon-yellow), var(--neon-red));
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 10px 24px;
+      background: rgba(11, 15, 25, 0.95);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">N</div>
+      <div>
+        <div class="brand-title">NEXUS-ITS</div>
+        <div class="brand-subtitle">EDGE-AI ADAPTIVE TRAFFIC MANAGEMENT</div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <select id="junctionSelect" class="junction-select">
+        <option value="junction01">JUNCTION 01 (Central Plaza)</option>
+        <option value="junction02">JUNCTION 02 (North Avenue)</option>
+        <option value="junction03">JUNCTION 03 (Tech Hub)</option>
+        <option value="junction04">JUNCTION 04 (Harbor Boulevard)</option>
+      </select>
+    </div>
+
+    <div class="header-status">
+      <div class="status-badge">
+        <div class="status-pulse"></div>
+        <span id="wsStatus">LIVE WEBSOCKET (20 Hz)</span>
+      </div>
+      <div style="color: var(--neon-cyan);" id="clockDisplay">08:42:15 AM</div>
+    </div>
+  </header>
+
+  <!-- DASHBOARD MAIN -->
+  <div class="dashboard-container">
+
+    <!-- LEFT COLUMN -->
+    <div class="main-visualizer">
+
+      <!-- KPI ROW -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">Congestion Index (DCI)</div>
+          <div class="kpi-value" id="kpiDci" style="color: var(--neon-green);">18.2%</div>
+          <div class="kpi-sub" id="kpiDciSub">● Optimal Flow</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active Phase</div>
+          <div class="kpi-value" id="kpiPhase" style="color: var(--neon-cyan); font-size: 18px;">NS_GREEN</div>
+          <div class="kpi-sub" id="kpiTimer">Elapsed: 12.4s / Min 15s</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CO₂ Prevented</div>
+          <div class="kpi-value" id="kpiCo2" style="color: var(--neon-green);">38.4 kg</div>
+          <div class="kpi-sub">vs Fixed Timer Baseline</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Flow Rate</div>
+          <div class="kpi-value" id="kpiFlow">1,340</div>
+          <div class="kpi-sub">Vehicles / Hour</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active AI Policy</div>
+          <div class="kpi-value" id="kpiPolicy" style="font-size: 16px; color: var(--neon-purple);">DEEP RL (DQN)</div>
+          <div class="kpi-sub">Multi-Agent Edge Neural</div>
+        </div>
+      </div>
+
+      <!-- MAIN CANVAS CARD -->
+      <div class="canvas-card">
+        <div class="canvas-toolbar">
+          <div class="view-tabs">
+            <button class="tab-btn active" id="tabTwin" onclick="switchView('twin')">Digital Twin (Micro Sim)</button>
+            <button class="tab-btn" id="tabCamera" onclick="switchView('camera')">Edge Vision (YOLOv8 Radar)</button>
+            <button class="tab-btn" id="tabWave" onclick="switchView('wave')">Corridor Green Wave</button>
+          </div>
+          <div class="canvas-controls">
+            <span class="ctrl-pill">FPS: <strong id="fpsMeter" style="color: var(--neon-green);">60</strong></span>
+            <span class="ctrl-pill">LATENCY: <strong style="color: var(--neon-cyan);">14ms</strong></span>
+            <span class="ctrl-pill">EDGE NPU: <strong style="color: var(--neon-purple);">98.2 GFLOPS</strong></span>
+          </div>
+        </div>
+
+        <div class="canvas-container">
+          <canvas id="trafficCanvas"></canvas>
+          <div class="hud-overlay">
+            <div class="hud-tag" id="hudPreemption" style="display: none;">🚑 EMERGENCY PREEMPTION LOCKED</div>
+            <div class="hud-tag red" id="hudIncident" style="display: none;">⚠️ OBSTRUCTION ON ROADWAY</div>
+            <div class="hud-tag green" id="hudWeather">WEATHER: CLEAR SKY</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN (COMMAND & CONTROLS) -->
+    <div class="sidebar">
+
+      <!-- SCENARIO INJECTION -->
+      <div class="panel-card">
+        <div class="panel-title">Mission Control Actions</div>
+        <div class="btn-grid">
+          <button class="action-btn btn-emergency" onclick="dispatchAmbulance()">
+            <span>🚑</span> Dispatch Emergency Siren
+          </button>
+          <button class="action-btn btn-accident" onclick="triggerAccident()">
+            <span>⚠️</span> Inject Stalled Car Breakdown
+          </button>
+          <button class="action-btn" style="background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan);" onclick="forcePhaseSwitch()">
+            <span>🔄</span> Force Phase Switch
+          </button>
+        </div>
+      </div>
+
+      <!-- WEATHER CONTROLS -->
+      <div class="panel-card">
+        <div class="panel-title">Environmental Simulation</div>
+        <div class="weather-group">
+          <button class="weather-btn active" id="wClear" onclick="setWeather('clear')">Clear</button>
+          <button class="weather-btn" id="wRain" onclick="setWeather('rain')">Rain</button>
+          <button class="weather-btn" id="wFog" onclick="setWeather('fog')">Fog</button>
+          <button class="weather-btn" id="wNight" onclick="setWeather('night')">Night</button>
+        </div>
+      </div>
+
+      <!-- CONTROLLER POLICY SELECTION -->
+      <div class="panel-card">
+        <div class="panel-title">Autonomous Controller</div>
+        <div class="btn-grid">
+          <button class="action-btn btn-policy active" id="polDqn" onclick="setPolicy('dqn')">
+            <span>Deep Q-Network (DQN)</span> <small style="color: var(--neon-green);">AI</small>
+          </button>
+          <button class="action-btn btn-policy" id="polWave" onclick="setPolicy('green_wave')">
+            <span>Green Wave Coordinated</span> <small>Corridor</small>
+          </button>
+          <button class="action-btn btn-policy" id="polAct" onclick="setPolicy('actuated')">
+            <span>Actuated Gap-Out</span> <small>Sensor</small>
+          </button>
+          <button class="action-btn btn-policy" id="polFixed" onclick="setPolicy('fixed')">
+            <span>Fixed-Time Baseline</span> <small style="color: var(--text-muted);">30s</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- QUEUE GAUGES -->
+      <div class="panel-card">
+        <div class="panel-title">Approach Queues</div>
+        <div class="queue-grid">
+          <div class="queue-bar-wrap">
+            <div class="queue-header"><span>North</span><strong id="qNCount">0</strong></div>
+            <div class="queue-track"><div class="queue-fill" id="qNBar" style="width: 10%;"></div></div>
+          </div>
+          <div class="queue-bar-wrap">
+            <div class="queue-header"><span>South</span><strong id="qSCount">0</strong></div>
+            <div class="queue-track"><div class="queue-fill" id="qSBar" style="width: 10%;"></div></div>
+          </div>
+          <div class="queue-bar-wrap">
+            <div class="queue-header"><span>East</span><strong id="qECount">0</strong></div>
+            <div class="queue-track"><div class="queue-fill" id="qEBar" style="width: 10%;"></div></div>
+          </div>
+          <div class="queue-bar-wrap">
+            <div class="queue-header"><span>West</span><strong id="qWCount">0</strong></div>
+            <div class="queue-track"><div class="queue-fill" id="qWBar" style="width: 10%;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENT TICKER -->
+      <div class="panel-card" style="flex: 1;">
+        <div class="panel-title">Real-Time ITS Events</div>
+        <div class="events-feed" id="eventsFeed">
+          <div class="event-item success">System initialized. Edge AI online.</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>EDGE HARDWARE: JETSON ORIN NANO / RASPBERRY PI 5 COMPATIBLE | PROTOCOL: WEBSOCKETS + NTCIP 1202</div>
+    <div>AUTONOMOUS ITS PLATFORM v2.5.0</div>
+  </footer>
+
+  <!-- DIGITAL TWIN CANVAS & CLIENT SCRIPT -->
+  <script>
+    let currentView = 'twin'; // 'twin', 'camera', 'wave'
+    let currentJunction = 'junction01';
+    let activePolicy = 'dqn';
+    let currentWeather = 'clear';
+
+    const canvas = document.getElementById('trafficCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let state = {
+      phase: 0,
+      phase_state: 'NS_GREEN',
+      phase_timer: 0.0,
+      min_green: 15.0,
+      max_green: 60.0,
+      queues: { N: 0, S: 0, E: 0, W: 0 },
+      vehicles: [],
+      pedestrians: [],
+      co2_saved_kg: 0.0,
+      weather: 'clear',
+      preemption: false,
+      incident: false,
+      events: []
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // WEBSOCKET CLIENT
+    let socket;
+    function connectWebSocket() {
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${proto}//${window.location.host}/ws/live?junction=${currentJunction}`;
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => {
+        document.getElementById('wsStatus').innerText = 'LIVE WEBSOCKET (20 Hz)';
+        document.getElementById('wsStatus').parentElement.style.borderColor = 'rgba(0, 255, 136, 0.4)';
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          updateDashboardState(data);
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      socket.onclose = () => {
+        document.getElementById('wsStatus').innerText = 'RECONNECTING...';
+        document.getElementById('wsStatus').parentElement.style.borderColor = 'rgba(255, 51, 102, 0.4)';
+        setTimeout(connectWebSocket, 1500);
+      };
+    }
+    connectWebSocket();
+
+    document.getElementById('junctionSelect').addEventListener('change', (e) => {
+      currentJunction = e.target.value;
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ action: 'set_junction', junction: currentJunction }));
+      }
+    });
+
+    function updateDashboardState(data) {
+      if (data.junction) {
+        state = Object.assign(state, data.junction);
+      } else {
+        state = Object.assign(state, data);
+      }
+
+      // Update KPI
+      const totalQ = (state.queues.N || 0) + (state.queues.S || 0) + (state.queues.E || 0) + (state.queues.W || 0);
+      const dci = Math.min(100, Math.round((totalQ / 40.0) * 100));
+      document.getElementById('kpiDci').innerText = `${dci}%`;
+      const dciSub = document.getElementById('kpiDciSub');
+      if (dci < 30) {
+        dciSub.innerHTML = '● Optimal Flow';
+        dciSub.style.color = 'var(--neon-green)';
+        document.getElementById('kpiDci').style.color = 'var(--neon-green)';
+      } else if (dci < 65) {
+        dciSub.innerHTML = '● Moderate Queuing';
+        dciSub.style.color = 'var(--neon-yellow)';
+        document.getElementById('kpiDci').style.color = 'var(--neon-yellow)';
+      } else {
+        dciSub.innerHTML = '● Heavy Congestion';
+        dciSub.style.color = 'var(--neon-red)';
+        document.getElementById('kpiDci').style.color = 'var(--neon-red)';
+      }
+
+      document.getElementById('kpiPhase').innerText = state.phase_state;
+      if (state.phase_state.includes('GREEN')) {
+        document.getElementById('kpiPhase').style.color = 'var(--neon-green)';
+      } else if (state.phase_state.includes('YELLOW')) {
+        document.getElementById('kpiPhase').style.color = 'var(--neon-yellow)';
+      } else {
+        document.getElementById('kpiPhase').style.color = 'var(--neon-red)';
+      }
+      document.getElementById('kpiTimer').innerText = `Elapsed: ${state.phase_timer || 0}s / Max ${state.max_green || 60}s`;
+      document.getElementById('kpiCo2').innerText = `${state.co2_saved_kg || 0} kg`;
+
+      // Approach queues
+      updateQueueBar('N', state.queues.N || 0);
+      updateQueueBar('S', state.queues.S || 0);
+      updateQueueBar('E', state.queues.E || 0);
+      updateQueueBar('W', state.queues.W || 0);
+
+      // HUD overlay
+      document.getElementById('hudPreemption').style.display = state.preemption ? 'block' : 'none';
+      document.getElementById('hudIncident').style.display = state.incident ? 'block' : 'none';
+      document.getElementById('hudWeather').innerText = `WEATHER: ${(state.weather || 'CLEAR').toUpperCase()}`;
+
+      // Events feed
+      if (state.events && state.events.length > 0) {
+        const feed = document.getElementById('eventsFeed');
+        feed.innerHTML = '';
+        state.events.slice().reverse().forEach(ev => {
+          const div = document.createElement('div');
+          div.className = `event-item ${ev.level || ''}`;
+          div.innerText = `[${new Date(ev.time * 1000).toLocaleTimeString()}] ${ev.message}`;
+          feed.appendChild(div);
+        });
+      }
+    }
+
+    function updateQueueBar(app, count) {
+      document.getElementById(`q${app}Count`).innerText = count;
+      const pct = Math.min(100, Math.round((count / 15.0) * 100));
+      const bar = document.getElementById(`q${app}Bar`);
+      bar.style.width = `${pct}%`;
+      if (pct > 60) {
+        bar.className = 'queue-fill high';
+      } else {
+        bar.className = 'queue-fill';
+      }
+    }
+
+    // ACTIONS
+    function dispatchAmbulance() {
+      fetch('/api/emergency/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicle_type: 'ambulance',
+          origin_junction: currentJunction,
+          approach: 'W',
+          direction: 'eastbound'
+        })
+      });
+    }
+
+    function triggerAccident() {
+      fetch('/api/incident/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          intersection_id: currentJunction,
+          approach: 'E',
+          duration_seconds: 30
+        })
+      });
+    }
+
+    function forcePhaseSwitch() {
+      fetch('/api/controller/switch_phase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intersection_id: currentJunction })
+      });
+    }
+
+    function setPolicy(policy) {
+      activePolicy = policy;
+      ['polDqn', 'polWave', 'polAct', 'polFixed'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      if (policy === 'dqn') document.getElementById('polDqn').classList.add('active');
+      if (policy === 'green_wave') document.getElementById('polWave').classList.add('active');
+      if (policy === 'actuated') document.getElementById('polAct').classList.add('active');
+      if (policy === 'fixed') document.getElementById('polFixed').classList.add('active');
+
+      document.getElementById('kpiPolicy').innerText = policy.toUpperCase();
+      fetch('/api/controller/policy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ policy })
+      });
+    }
+
+    function setWeather(weather) {
+      currentWeather = weather;
+      ['wClear', 'wRain', 'wFog', 'wNight'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      if (weather === 'clear') document.getElementById('wClear').classList.add('active');
+      if (weather === 'rain') document.getElementById('wRain').classList.add('active');
+      if (weather === 'fog') document.getElementById('wFog').classList.add('active');
+      if (weather === 'night') document.getElementById('wNight').classList.add('active');
+
+      fetch('/api/environment/weather', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weather })
+      });
+    }
+
+    function switchView(view) {
+      currentView = view;
+      ['tabTwin', 'tabCamera', 'tabWave'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      if (view === 'twin') document.getElementById('tabTwin').classList.add('active');
+      if (view === 'camera') document.getElementById('tabCamera').classList.add('active');
+      if (view === 'wave') document.getElementById('tabWave').classList.add('active');
+    }
+
+    // CLOCK TICK
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clockDisplay').innerText = now.toLocaleTimeString();
+    }, 1000);
+
+    // 60 FPS CANVAS RENDER LOOP
+    let lastTime = performance.now();
+    let frameCount = 0;
+    let fps = 60;
+
+    function renderLoop(time) {
+      frameCount++;
+      if (time - lastTime >= 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastTime = time;
+        document.getElementById('fpsMeter').innerText = fps;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentView === 'twin') {
+        renderDigitalTwin();
+      } else if (currentView === 'camera') {
+        renderEdgeCameraView();
+      } else if (currentView === 'wave') {
+        renderGreenWaveCorridor();
+      }
+
+      requestAnimationFrame(renderLoop);
+    }
+    requestAnimationFrame(renderLoop);
+
+    // 1. DIGITAL TWIN RENDERING
+    function renderDigitalTwin() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const roadW = Math.min(w, h) * 0.28;
+
+      // Weather lighting effects
+      if (state.weather === 'night') {
+        ctx.fillStyle = '#030509';
+      } else if (state.weather === 'rain') {
+        ctx.fillStyle = '#0a101b';
+      } else if (state.weather === 'fog') {
+        ctx.fillStyle = '#101726';
+      } else {
+        ctx.fillStyle = '#080c14';
+      }
+      ctx.fillRect(0, 0, w, h);
+
+      // Roads (Asphalt)
+      ctx.fillStyle = '#181e2b';
+      // North-South road
+      ctx.fillRect(cx - roadW / 2, 0, roadW, h);
+      // East-West road
+      ctx.fillRect(0, cy - roadW / 2, w, roadW);
+
+      // Intersection center box
+      ctx.fillStyle = '#1c2434';
+      ctx.fillRect(cx - roadW / 2, cy - roadW / 2, roadW, roadW);
+
+      // Road markings (Zebra crosswalks)
+      renderZebra(cx - roadW / 2, cy - roadW / 2 - 20, roadW, 16, true);  // North
+      renderZebra(cx - roadW / 2, cy + roadW / 2 + 4, roadW, 16, true);   // South
+      renderZebra(cx - roadW / 2 - 20, cy - roadW / 2, 16, roadW, false); // West
+      renderZebra(cx + roadW / 2 + 4, cy - roadW / 2, 16, roadW, false);  // East
+
+      // Double yellow center lines & lane dividers
+      ctx.strokeStyle = '#eab308';
+      ctx.lineWidth = 2;
+      // N-S Center line
+      ctx.beginPath();
+      ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - roadW / 2 - 24);
+      ctx.moveTo(cx, cy + roadW / 2 + 24); ctx.lineTo(cx, h);
+      // E-W Center line
+      ctx.moveTo(0, cy); ctx.lineTo(cx - roadW / 2 - 24, cy);
+      ctx.moveTo(cx + roadW / 2 + 24, cy); ctx.lineTo(w, cy);
+      ctx.stroke();
+
+      // Dashed lane dividers
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(cx - roadW / 4, 0); ctx.lineTo(cx - roadW / 4, cy - roadW / 2 - 24);
+      ctx.moveTo(cx + roadW / 4, cy + roadW / 2 + 24); ctx.lineTo(cx + roadW / 4, h);
+      ctx.moveTo(0, cy + roadW / 4); ctx.lineTo(cx - roadW / 2 - 24, cy + roadW / 4);
+      ctx.moveTo(cx + roadW / 2 + 24, cy - roadW / 4); ctx.lineTo(w, cy - roadW / 4);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Stop lines
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx - roadW / 2, cy - roadW / 2 - 22); ctx.lineTo(cx, cy - roadW / 2 - 22);
+      ctx.moveTo(cx, cy + roadW / 2 + 22); ctx.lineTo(cx + roadW / 2, cy + roadW / 2 + 22);
+      ctx.moveTo(cx - roadW / 2 - 22, cy); ctx.lineTo(cx - roadW / 2 - 22, cy + roadW / 2);
+      ctx.moveTo(cx + roadW / 2 + 22, cy - roadW / 2); ctx.lineTo(cx + roadW / 2 + 22, cy);
+      ctx.stroke();
+
+      // Signals
+      renderTrafficSignals(cx, cy, roadW);
+
+      // Render Vehicles
+      renderVehicles(cx, cy, roadW);
+
+      // Weather rain particles
+      if (state.weather === 'rain') {
+        renderRainParticles(w, h);
+      }
+    }
+
+    function renderZebra(x, y, width, height, horizontal) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      const bars = 8;
+      if (horizontal) {
+        const barW = width / bars;
+        for (let i = 0; i < bars; i += 2) {
+          ctx.fillRect(x + i * barW, y, barW, height);
+        }
+      } else {
+        const barH = height / bars;
+        for (let i = 0; i < bars; i += 2) {
+          ctx.fillRect(x, y + i * barH, width, barH);
+        }
+      }
+    }
+
+    function renderTrafficSignals(cx, cy, roadW) {
+      const nsGreen = state.phase_state === 'NS_GREEN';
+      const nsYellow = state.phase_state === 'NS_YELLOW';
+      const ewGreen = state.phase_state === 'EW_GREEN';
+      const ewYellow = state.phase_state === 'EW_YELLOW';
+
+      // Colors
+      const nsColor = nsGreen ? '#00ff88' : (nsYellow ? '#ffb800' : '#ff3366');
+      const ewColor = ewGreen ? '#00ff88' : (ewYellow ? '#ffb800' : '#ff3366');
+
+      // North Signal Head
+      drawSignalHead(cx - roadW / 2 - 14, cy - roadW / 2 - 14, nsColor);
+      // South Signal Head
+      drawSignalHead(cx + roadW / 2 + 14, cy + roadW / 2 + 14, nsColor);
+      // West Signal Head
+      drawSignalHead(cx - roadW / 2 - 14, cy + roadW / 2 + 14, ewColor);
+      // East Signal Head
+      drawSignalHead(cx + roadW / 2 + 14, cy - roadW / 2 - 14, ewColor);
+    }
+
+    function drawSignalHead(x, y, color) {
+      ctx.fillStyle = '#0b0f19';
+      ctx.strokeStyle = '#2d3748';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Glowing light
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0; // reset
+    }
+
+    function renderVehicles(cx, cy, roadW) {
+      const scale = roadW / 30.0; // pixels per meter
+      const vehs = state.vehicles || [];
+
+      vehs.forEach(v => {
+        let x = 0, y = 0, angle = 0;
+        const dist = v.pos; // distance to stop line (meters)
+        const laneOffset = v.lane === 1 ? (roadW * 0.12) : (roadW * 0.35);
+
+        if (v.app === 'N') {
+          x = cx - laneOffset;
+          y = cy - roadW / 2 - 24 - dist * scale;
+          angle = Math.PI / 2;
+        } else if (v.app === 'S') {
+          x = cx + laneOffset;
+          y = cy + roadW / 2 + 24 + dist * scale;
+          angle = -Math.PI / 2;
+        } else if (v.app === 'W') {
+          x = cx - roadW / 2 - 24 - dist * scale;
+          y = cy + laneOffset;
+          angle = 0;
+        } else if (v.app === 'E') {
+          x = cx + roadW / 2 + 24 + dist * scale;
+          y = cy - laneOffset;
+          angle = Math.PI;
+        }
+
+        // Draw vehicle body
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        let vColor = '#00f3ff';
+        let vLen = 22, vWid = 12;
+
+        if (v.emg) {
+          vColor = (Math.floor(Date.now() / 150) % 2 === 0) ? '#ff3366' : '#00f3ff';
+          vLen = 26; vWid = 13;
+        } else if (v.kind === 'bus') {
+          vColor = '#ffb800';
+          vLen = 38; vWid = 14;
+        } else if (v.kind === 'truck') {
+          vColor = '#3b82f6';
+          vLen = 34; vWid = 14;
+        } else if (v.kind === 'motorcycle') {
+          vColor = '#a855f7';
+          vLen = 14; vWid = 7;
+        } else if (v.stalled) {
+          vColor = '#ef4444';
+        }
+
+        // Vehicle shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(-vLen / 2 + 2, -vWid / 2 + 2, vLen, vWid);
+
+        // Vehicle Chassis
+        ctx.fillStyle = vColor;
+        ctx.beginPath();
+        ctx.roundRect(-vLen / 2, -vWid / 2, vLen, vWid, 3);
+        ctx.fill();
+
+        // Windshield
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(vLen * 0.1, -vWid * 0.35, vLen * 0.25, vWid * 0.7);
+
+        // Headlights beam at night/fog
+        if (state.weather === 'night' || state.weather === 'fog') {
+          ctx.fillStyle = 'rgba(255, 255, 200, 0.25)';
+          ctx.beginPath();
+          ctx.moveTo(vLen / 2, -vWid / 3);
+          ctx.lineTo(vLen / 2 + 40, -vWid);
+          ctx.lineTo(vLen / 2 + 40, vWid);
+          ctx.lineTo(vLen / 2, vWid / 3);
+          ctx.fill();
+        }
+
+        // Brake lights
+        if (v.stopped || v.spd < 3.0) {
+          ctx.fillStyle = '#ff3366';
+          ctx.shadowColor = '#ff3366';
+          ctx.shadowBlur = 6;
+          ctx.fillRect(-vLen / 2 - 1, -vWid * 0.4, 2, 3);
+          ctx.fillRect(-vLen / 2 - 1, vWid * 0.4 - 3, 2, 3);
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.restore();
+      });
+    }
+
+    function renderRainParticles(w, h) {
+      ctx.strokeStyle = 'rgba(0, 243, 255, 0.2)';
+      ctx.lineWidth = 1;
+      const count = 35;
+      for (let i = 0; i < count; i++) {
+        const rx = (Math.random() * w);
+        const ry = (Math.random() * h);
+        ctx.beginPath();
+        ctx.moveTo(rx, ry);
+        ctx.lineTo(rx - 4, ry + 12);
+        ctx.stroke();
+      }
+    }
+
+    // 2. EDGE VISION / CCTV RADAR VIEW
+    function renderEdgeCameraView() {
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Dark CCTV screen with scanlines
+      ctx.fillStyle = '#050a12';
+      ctx.fillRect(0, 0, w, h);
+
+      // Camera HUD header
+      ctx.fillStyle = 'rgba(0, 243, 255, 0.8)';
+      ctx.font = '12px "JetBrains Mono", monospace';
+      ctx.fillText(`CAM-01 [OVERHEAD CCTV] - 4K ULTRA-HD EDGE STREAM`, 20, 28);
+      ctx.fillText(`REC ● ${new Date().toISOString()}`, w - 240, 28);
+      ctx.fillText(`NEURAL BACKEND: YOLOv8-NANO + SORT TRACKER`, 20, 48);
+
+      // Crosshairs & approach zone boundaries
+      ctx.strokeStyle = 'rgba(0, 243, 255, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(w * 0.35, 10, w * 0.3, h * 0.35); // Zone N
+      ctx.strokeRect(w * 0.35, h * 0.65, w * 0.3, h * 0.32); // Zone S
+      ctx.strokeRect(w * 0.65, h * 0.35, w * 0.32, h * 0.3); // Zone E
+      ctx.strokeRect(10, h * 0.35, w * 0.32, h * 0.3); // Zone W
+
+      ctx.fillStyle = 'rgba(0, 243, 255, 0.4)';
+      ctx.fillText(`ZONE-N [COUNT: ${state.queues.N || 0}]`, w * 0.36, 26);
+      ctx.fillText(`ZONE-S [COUNT: ${state.queues.S || 0}]`, w * 0.36, h * 0.68);
+      ctx.fillText(`ZONE-E [COUNT: ${state.queues.E || 0}]`, w * 0.67, h * 0.38);
+      ctx.fillText(`ZONE-W [COUNT: ${state.queues.W || 0}]`, 20, h * 0.38);
+
+      // Render YOLO Bounding Boxes
+      const vehs = state.vehicles || [];
+      vehs.forEach((v, idx) => {
+        const normPos = Math.max(0, Math.min(1.0, (v.pos + 20) / 280.0));
+        let bx = 0, by = 0;
+        if (v.app === 'N') {
+          bx = w * 0.45;
+          by = h * 0.5 - h * 0.45 * normPos;
+        } else if (v.app === 'S') {
+          bx = w * 0.52;
+          by = h * 0.5 + h * 0.45 * normPos;
+        } else if (v.app === 'E') {
+          bx = w * 0.5 + w * 0.45 * normPos;
+          by = h * 0.45;
+        } else {
+          bx = w * 0.5 - w * 0.45 * normPos;
+          by = h * 0.53;
+        }
+
+        const bw = v.kind === 'bus' || v.kind === 'truck' ? 44 : 28;
+        const bh = v.kind === 'bus' || v.kind === 'truck' ? 34 : 22;
+
+        let bColor = v.emg ? '#ff3366' : '#00ff88';
+        if (v.stalled) bColor = '#ffb800';
+
+        ctx.strokeStyle = bColor;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(bx - bw / 2, by - bh / 2, bw, bh);
+
+        // Label Tag
+        ctx.fillStyle = bColor;
+        ctx.fillRect(bx - bw / 2, by - bh / 2 - 14, bw + 38, 14);
+        ctx.fillStyle = '#050a12';
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillText(`${v.kind.toUpperCase()} #${v.id} ${v.spd}km/h`, bx - bw / 2 + 2, by - bh / 2 - 3);
+      });
+
+      // Scanline effect
+      ctx.fillStyle = 'rgba(0, 243, 255, 0.02)';
+      for (let i = 0; i < h; i += 4) {
+        ctx.fillRect(0, i, w, 1);
+      }
+    }
+
+    // 3. GREEN WAVE ARTERIAL CORRIDOR VIEW
+    function renderGreenWaveCorridor() {
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.fillStyle = '#07090e';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(0, 243, 255, 0.8)';
+      ctx.font = '14px "Outfit", sans-serif';
+      ctx.fillText(`ARTERIAL BOULEVARD: COORDINATED 4-JUNCTION GREEN WAVE SYNCHRONIZATION`, 24, 32);
+
+      const junctions = ['Junction 01', 'Junction 02', 'Junction 03', 'Junction 04'];
+      const spacing = (w - 120) / 4;
+      const centerY = h * 0.5;
+
+      // Draw arterial road band
+      ctx.fillStyle = '#181e2b';
+      ctx.fillRect(40, centerY - 30, w - 80, 60);
+
+      // Moving green wave band
+      const waveOffset = (Date.now() / 25) % (w - 80);
+      const grad = ctx.createLinearGradient(40 + waveOffset - 60, centerY, 40 + waveOffset + 60, centerY);
+      grad.addColorStop(0, 'rgba(0, 255, 136, 0)');
+      grad.addColorStop(0.5, 'rgba(0, 255, 136, 0.35)');
+      grad.addColorStop(1, 'rgba(0, 255, 136, 0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(40 + waveOffset - 80, centerY - 30, 160, 60);
+
+      // Junction Nodes
+      junctions.forEach((name, i) => {
+        const jx = 70 + i * spacing;
+        ctx.fillStyle = '#0b111e';
+        ctx.strokeStyle = 'var(--neon-cyan)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(jx, centerY, 22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#00ff88';
+        ctx.beginPath();
+        ctx.arc(jx, centerY, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px "JetBrains Mono", monospace';
+        ctx.fillText(name, jx - 30, centerY + 46);
+        ctx.fillStyle = 'var(--text-dim)';
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillText(`Offset: +${i * 8.0}s`, jx - 24, centerY + 62);
+      });
+    }
+  </script>
+</body>
+</html>

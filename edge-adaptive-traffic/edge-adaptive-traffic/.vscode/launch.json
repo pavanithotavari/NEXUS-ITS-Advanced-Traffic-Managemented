@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {"name": "Train RL", "type": "debugpy", "request": "launch", "module": "edge_traffic.train_rl",
+     "env": {"PYTHONPATH": "${workspaceFolder}/src"}},
+    {"name": "Evaluate", "type": "debugpy", "request": "launch", "module": "edge_traffic.evaluate",
+     "env": {"PYTHONPATH": "${workspaceFolder}/src"}},
+    {"name": "Edge runtime (sim)", "type": "debugpy", "request": "launch", "module": "edge_traffic.edge_runtime",
+     "args": ["--source", "sim"], "env": {"PYTHONPATH": "${workspaceFolder}/src"}}
+  ]
+}
